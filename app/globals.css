@@ -1,26 +1,14 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Cấu hình màu sắc thương hiệu ZPATH (Tailwind v4 style) */
+@theme {
+  --color-zpath-primary: #1DA1F2;
+  --color-zpath-secondary: #7B2CBF;
+  --color-zpath-accent: #22D3EE;
+  --color-zpath-dark: #0B1F3A;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Biến màu nền gradient để dùng lại nhiều lần */
+@utility bg-zpath-gradient {
+  background-image: linear-gradient(to right, #1DA1F2, #7B2CBF);
 }
