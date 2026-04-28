@@ -11,7 +11,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'http://localhost:3000/dashboard' // Chuyển về Dashboard sau khi đăng nhập thành công
+        redirectTo: `${window.location.origin}/dashboard`// Chuyển về Dashboard sau khi đăng nhập thành công
       }
     });
 
