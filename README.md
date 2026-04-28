@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 ZPATH - Nền tảng Định hướng Nghề nghiệp AI
 
-## Getting Started
+ZPATH là ứng dụng EdTech giúp học sinh THPT khám phá bản thân và tìm kiếm lộ trình đại học phù hợp thông qua sức mạnh của AI.
 
-First, run the development server:
+## 🛠 Quy trình thiết lập (Setup) cho Dev mới
+1. **Docker:** Đảm bảo đã cài và bật **Docker Desktop**.
+2. **Cài đặt:** `npm install`
+3. **Môi trường:** Tạo file `.env.local` (Lấy nội dung từ Tech Lead).
+4. **Database:** `npx supabase start` để khởi động DB ảo.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🌿 Quy trình Gitflow (Bắt buộc)
+- **main:** Code sạch, ổn định (Deploy Vercel).
+- **develop:** Nhánh tích hợp chính của team.
+- **feature/[ten-tinh-nang]:** Nhánh làm việc cá nhân (Tách ra từ `develop`).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Luồng làm việc:**
+1. `git checkout develop` -> `git pull origin develop`.
+2. `git checkout -b feature/tinh-nang-moi`.
+3. Code & Test -> `git push origin feature/tinh-nang-moi`.
+4. Tạo **Pull Request** gộp vào `develop`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🏗 Kiến trúc dự án (Clean Architecture)
+- `/components`: Chứa các mảnh ghép giao diện (UI) dùng chung.
+- `/hooks`: Chứa logic xử lý dữ liệu và gọi API (Brain).
+- `/app`: Chỉ dùng để lắp ráp giao diện và định tuyến trang (Assembly).
+- `/supabase/migrations`: Chứa các file lịch sử thay đổi Database.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🗄️ Quản lý Database
+Mọi thay đổi cấu trúc bảng (thêm cột, tạo bảng mới) phải được thực hiện qua lệnh:
+`npx supabase db diff -f ten_mo_ta_thay_doi`
+Sau đó commit file .sql sinh ra cùng với code.
