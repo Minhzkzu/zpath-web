@@ -1,34 +1,48 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { Send, Bot, User, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
+import { buildCareerMatches } from '@/lib/matching-engine';
+import { useUserProfile } from '@/hooks/useUserProfile';
+
+interface ChatMessage {
+  role: 'user' | 'ai';
+  content: string;
+}
+
 export default function ChatPage() {
-  const [userData, setUserData] = useState<any>(null);
+  const { googleUser, userProfile, isLoading: isProfileLoading, errorMessage } = useUserProfile();
   const [message, setMessage] = useState('');
-  const [chatHistory, setChatHistory] = useState<{role: 'user' | 'ai', content: string}[]>([]);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Lấy dữ liệu user từ bộ nhớ khi load trang
-  useEffect(() => {
-    const savedData = localStorage.getItem('zpath_user_profile');
-    if (savedData) {
-      setUserData(JSON.parse(savedData));
-      // Câu chào mừng ban đầu của AI
-      setChatHistory([{
-        role: 'ai', 
-        content: `Chào ${JSON.parse(savedData).name}! Mình là ZPATH AI Mentor. Mình đã đọc hồ sơ của bạn. Mình có thể giúp gì cho bạn hôm nay?`
-      }]);
+  const initialAssistantMessage = useMemo<ChatMessage | null>(() => {
+    if (!userProfile) {
+      return null;
     }
-  }, []);
+
+    const topMatch = buildCareerMatches(userProfile)[0];
+    const firstName = googleUser?.user_metadata?.full_name?.split(' ')?.slice(-1)[0] ?? 'ban';
+
+    return {
+      role: 'ai',
+      content: `Chao ${firstName}! Minh da doc ho so cua ban trong he thong. Hien nhom tinh cach cua ban la ${userProfile.personality} va huong phu hop nhat luc nay la ${topMatch?.title ?? 'mot lo trinh dang duoc cap nhat'}. Ban muon hoi ve nganh, truong hay cach cai thien ho so?`,
+    };
+  }, [googleUser, userProfile]);
+
+  const visibleChatHistory =
+    chatHistory.length === 0 && initialAssistantMessage ? [initialAssistantMessage] : chatHistory;
 
   const handleSendMessage = async () => {
-    if (!message.trim()) return;
+    if (!message.trim() || !userProfile) return;
 
     // 1. Thêm tin nhắn của user vào màn hình
     const userMsg = message;
-    setChatHistory(prev => [...prev, { role: 'user', content: userMsg }]);
+    const baseHistory = chatHistory.length === 0 && initialAssistantMessage ? [initialAssistantMessage] : chatHistory;
+
+    setChatHistory([...baseHistory, { role: 'user', content: userMsg }]);
     setMessage('');
     setIsLoading(true);
 
@@ -39,20 +53,42 @@ export default function ChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMsg,
-          userProfile: userData
+          userProfile
         })
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'AI Mentor dang ban.');
+      }
 
       // 3. Hiển thị câu trả lời của AI
       setChatHistory(prev => [...prev, { role: 'ai', content: data.reply }]);
-    } catch (error) {
+    } catch {
       setChatHistory(prev => [...prev, { role: 'ai', content: 'Xin lỗi, hệ thống đang bận. Bạn thử lại sau nhé!' }]);
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isProfileLoading) {
+    return <div className="max-w-3xl mx-auto p-8">Dang tai ho so cua ban...</div>;
+  }
+
+  if (errorMessage) {
+    return <div className="max-w-3xl mx-auto p-8">{errorMessage}</div>;
+  }
+
+  if (!userProfile) {
+    return (
+      <div className="max-w-3xl mx-auto p-8">
+        <p className="mb-4">Ban chua co ho so de AI tu van.</p>
+        <Link href="/discover" className="inline-flex bg-zpath-gradient text-white px-6 py-3 rounded-full font-semibold">
+          Tao ho so ngay
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-8 h-[calc(100vh-64px)] flex flex-col">
@@ -69,7 +105,7 @@ export default function ChatPage() {
         
         {/* Nơi hiển thị tin nhắn */}
         <div className="flex-1 p-4 overflow-y-auto space-y-4">
-          {chatHistory.map((msg, idx) => (
+          {visibleChatHistory.map((msg, idx) => (
             <div key={idx} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-zpath-primary text-white' : 'bg-zpath-gradient text-white'}`}>
                 {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}

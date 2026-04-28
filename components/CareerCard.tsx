@@ -1,15 +1,10 @@
 import { motion } from 'framer-motion';
 import { GraduationCap } from 'lucide-react';
+import type { CareerMatch } from '@/lib/types';
 
 // Định nghĩa kiểu dữ liệu cho dễ quản lý
 interface CareerCardProps {
-  career: {
-    id: number;
-    title: string;
-    matchScore: number;
-    reason: string;
-    universities: string[];
-  };
+  career: CareerMatch;
   index: number;
 }
 

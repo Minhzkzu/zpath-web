@@ -3,15 +3,18 @@
 import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
   
   // Hàm xử lý khi bấm nút Đăng nhập Google
   const handleGoogleLogin = async () => {
+    const nextPath = searchParams.get('next') || '/dashboard';
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/dashboard`// Chuyển về Dashboard sau khi đăng nhập thành công
+        redirectTo: `${window.location.origin}${nextPath}` // Quay về trang mong muốn sau đăng nhập
       }
     });
 
