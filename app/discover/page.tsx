@@ -2,10 +2,14 @@
 
 import { motion } from 'framer-motion';
 import { Brain, Target, Send } from 'lucide-react';
+import Link from 'next/link';
+import { useUserProfile } from '../../hooks/useUserProfile';
 import { useDiscoverForm } from '../../hooks/useDiscoverForm';
 import { ScoreInput } from '../../components/ScoreInput';
 
 export default function DiscoverPage() {
+  const { googleUser, isLoading: isProfileLoading } = useUserProfile({ requireAuth: false });
+
   // GỌI BỘ NÃO (Logic)
   const { formData, handleChange, handleSubmit, isSubmitting } = useDiscoverForm();
 
@@ -17,6 +21,20 @@ export default function DiscoverPage() {
           <h1 className="text-3xl md:text-4xl font-bold text-zpath-dark mb-4">Khám phá bản thân</h1>
           <p className="text-gray-600">Nhập dữ liệu để AI phân tích lộ trình phù hợp nhất với bạn.</p>
         </div>
+
+        {!isProfileLoading && !googleUser && (
+          <div className="mb-6 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+            <p className="text-gray-700 font-medium">
+              Bạn cần đăng nhập để lưu hồ sơ và dùng Matching Engine.
+            </p>
+            <Link
+              href="/login?next=/discover"
+              className="inline-flex mt-3 bg-zpath-gradient text-white px-5 py-3 rounded-full font-semibold"
+            >
+              Đăng nhập để tiếp tục
+            </Link>
+          </div>
+        )}
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -55,7 +73,7 @@ export default function DiscoverPage() {
             {/* Nút Submit */}
             <button 
               type="submit" 
-              disabled={isSubmitting}
+              disabled={isSubmitting || (!isProfileLoading && !googleUser)}
               className="w-full bg-zpath-gradient text-white font-bold py-4 rounded-xl flex justify-center items-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
             >
               {isSubmitting ? 'Đang xử lý...' : 'Hoàn tất & Phân tích'} <Send size={18} />

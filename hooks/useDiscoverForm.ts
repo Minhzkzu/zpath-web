@@ -1,15 +1,17 @@
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '../app/lib/supabase';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { saveCurrentUserProfile } from "@/lib/profile";
+import type { DiscoverFormData } from "@/lib/types";
 
 export function useDiscoverForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    mathScore: '',
-    physicsScore: '',
-    thirdScore: '',
-    personality: ''
+  const [formData, setFormData] = useState<DiscoverFormData>({
+    mathScore: "",
+    physicsScore: "",
+    thirdScore: "",
+    personality: "",
   });
 
   // Hàm cập nhật dữ liệu khi gõ vào ô input
@@ -23,34 +25,16 @@ export function useDiscoverForm() {
     setIsSubmitting(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const userEmail = session?.user?.email;
-
-      const math = parseFloat(formData.mathScore) || 0;
-      const physics = parseFloat(formData.physicsScore) || 0;
-      const third = parseFloat(formData.thirdScore) || 0;
-      const total = math + physics + third;
-
-      // Bắn lên Supabase
-      const { error } = await supabase
-        .from('user_profiles')
-        .insert([
-          { 
-            user_email: userEmail,
-            personality: formData.personality, 
-            math: math, 
-            physics: physics, 
-            third_subject: third,
-            total_score: total
-          }
-        ]);
-
-      if (error) throw error;
-      
-      localStorage.removeItem('zpath_user_profile'); 
-      router.push('/dashboard');
+      await saveCurrentUserProfile(formData);
+      router.push("/dashboard");
     } catch (error) {
       console.error("Lỗi lưu dữ liệu:", error);
+      if (error instanceof Error && error.message.includes("đăng nhập")) {
+        // Yêu cầu đăng nhập trước khi lưu hồ sơ
+        router.push("/login?next=/discover");
+        return;
+      }
+
       alert("Không thể lưu hồ sơ, vui lòng thử lại!");
     } finally {
       setIsSubmitting(false);
