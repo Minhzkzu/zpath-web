@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Temporary: ignore accidentally created empty migration
+/supabase/migrations/20260429162009_add_personality_questions.sql
