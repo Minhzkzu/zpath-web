@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 
@@ -16,9 +16,18 @@ export const useUserProfile = (options?: { requireAuth?: boolean }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const resetState = useMemo(
+    () => () => {
+      setGoogleUser(null);
+      setUserProfile(null);
+      setErrorMessage(null);
+      setIsLoading(true);
+    },
+    []
+  );
+
   const loadProfile = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
+    resetState();
 
     try {
       const { user, profile } = await getCurrentUserProfile();
@@ -41,13 +50,10 @@ export const useUserProfile = (options?: { requireAuth?: boolean }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [requireAuth, router]);
+  }, [requireAuth, resetState, router]);
 
   useEffect(() => {
     let isActive = true;
-
-    setIsLoading(true);
-    setErrorMessage(null);
 
     getCurrentUserProfile()
       .then(({ user, profile }) => {
@@ -62,11 +68,13 @@ export const useUserProfile = (options?: { requireAuth?: boolean }) => {
 
           setGoogleUser(null);
           setUserProfile(null);
+          setIsLoading(false);
           return;
         }
 
         setGoogleUser(user);
         setUserProfile(profile);
+        setIsLoading(false);
       })
       .catch((error) => {
         if (!isActive) {
@@ -75,17 +83,14 @@ export const useUserProfile = (options?: { requireAuth?: boolean }) => {
 
         console.error("Khong the tai ho so nguoi dung:", error);
         setErrorMessage("Khong the tai ho so cua ban luc nay.");
+        setIsLoading(false);
       })
-      .finally(() => {
-        if (isActive) {
-          setIsLoading(false);
-        }
-      });
+      .finally(() => {});
 
     return () => {
       isActive = false;
     };
-  }, [requireAuth, router]);
+  }, [requireAuth, resetState, router]);
 
   return {
     googleUser,
