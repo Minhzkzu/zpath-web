@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/zpath/Navbar";
 import { Footer } from "@/components/zpath/Footer";
+import { ChatWidget } from "@/components/ChatWidget";
 
 export const metadata: Metadata = {
   title: "ZPATH - Định hướng tương lai",
@@ -24,6 +25,7 @@ export default function RootLayout({
         </main>
 
         <Footer />
+        <ChatWidget />
       </body>
     </html>
   );
