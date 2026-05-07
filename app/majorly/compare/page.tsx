@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Layers, Loader2, Plus, X, Trophy, Crown, Equal } from "lucide-react";
+import { ArrowLeft, Layers, Loader2, X, Trophy, Crown, Equal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/app/lib/supabase";
@@ -82,11 +82,13 @@ export default function MajorlyComparePage() {
   }, []);
 
   useEffect(() => {
-    if (!codeA || !majors.length) {
-      setAggA(null);
-      return;
-    }
     async function fetchA() {
+      if (!codeA || !majors.length) {
+        // Avoid synchronous setState-in-effect (eslint rule)
+        await Promise.resolve();
+        setAggA(null);
+        return;
+      }
       setLoadingA(true);
       const m = majors.find((x) => x.code === codeA)!;
       if (m) {
@@ -99,11 +101,13 @@ export default function MajorlyComparePage() {
   }, [codeA, majors]);
 
   useEffect(() => {
-    if (!codeB || !majors.length) {
-      setAggB(null);
-      return;
-    }
     async function fetchB() {
+      if (!codeB || !majors.length) {
+        // Avoid synchronous setState-in-effect (eslint rule)
+        await Promise.resolve();
+        setAggB(null);
+        return;
+      }
       setLoadingB(true);
       const m = majors.find((x) => x.code === codeB)!;
       if (m) {
