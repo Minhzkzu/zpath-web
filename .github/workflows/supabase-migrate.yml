@@ -22,7 +22,7 @@ jobs:
         run: npm ci
 
       - name: Install Supabase CLI
-        run: npm i -g supabase
+        run: npx supabase@latest --version
 
       - name: Resolve deploy target
         id: target
@@ -47,12 +47,12 @@ jobs:
           SUPABASE_DB_PASSWORD_PROD: ${{ secrets.SUPABASE_DB_PASSWORD_PROD }}
 
       - name: Link Supabase project
-        run: supabase link --project-ref "${{ steps.target.outputs.project_ref }}"
+        run: npx supabase@latest link --project-ref "${{ steps.target.outputs.project_ref }}"
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
       - name: Apply migrations
-        run: supabase db push --password "${{ steps.target.outputs.db_password }}"
+        run: npx supabase@latest db push --password "${{ steps.target.outputs.db_password }}"
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
