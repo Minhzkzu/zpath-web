@@ -8,19 +8,16 @@ import {
   Inbox,
   Loader2,
   MapPin,
-  Sparkles,
   Trophy,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Field, NumberInput, SelectInput } from "@/components/zpath/FormFields";
-import { SbtiPicker } from "@/components/zpath/SbtiPicker";
 import { tierConfig } from "@/components/zpath/TierBadge";
 import { computeResult } from "@/lib/zpath-calc";
 import { REGIONS, SUBJECTS, type TrialFormData, type TrialResult } from "@/types/zpath";
 
 const initial: TrialFormData = {
-  sbti: "",
   scoreMath: 0,
   scoreLiterature: 0,
   electiveSubject1: "",
@@ -28,7 +25,11 @@ const initial: TrialFormData = {
   electiveSubject2: "",
   electiveScore2: 0,
   ielts: 0,
-  culturalAward: "none",
+  sat: 0,
+  hsgProvince: "none",
+  hsgNational: "none",
+  stemAward: "none",
+  financialLevel: 0,
   region: "",
 };
 
@@ -45,29 +46,47 @@ export function TrialForm() {
 
   const validate = (): boolean => {
     const nextErrors: typeof errors = {};
-
-    if (!data.sbti) nextErrors.sbti = "Vui lòng chọn loại tính cách SBTI";
     if (!data.region) nextErrors.region = "Vui lòng chọn vùng";
     if (!data.electiveSubject1) nextErrors.electiveSubject1 = "Chọn môn tự chọn 1";
     if (!data.electiveSubject2) nextErrors.electiveSubject2 = "Chọn môn tự chọn 2";
     if (data.electiveSubject1 && data.electiveSubject1 === data.electiveSubject2) {
       nextErrors.electiveSubject2 = "Hai môn tự chọn phải khác nhau";
     }
+    if (!data.sat) nextErrors.sat = "Nhập điểm SAT";
+    if (!data.hsgProvince) nextErrors.hsgProvince = "Chọn giải thưởng HSG tỉnh";
+    if (!data.hsgNational) nextErrors.hsgNational = "Chọn giải thưởng HSG quốc gia";
+    if (!data.stemAward) nextErrors.stemAward = "Chọn giải thưởng KHKT";
+    if (data.financialLevel < 0) nextErrors.financialLevel = "Nhập mức tài chính";
 
     const checkScore = (score: number, key: keyof TrialFormData) => {
       if (Number.isNaN(score) || score < 0 || score > 10) {
         nextErrors[key] = "Điểm phải từ 0 đến 10";
       }
     };
-
+    const checkSat = (score: number, key: keyof TrialFormData) => {
+      if (Number.isNaN(score) || score < 0 || score > 1600) {
+        nextErrors[key] = "Điểm phải từ 0 đến 1600";
+      }
+    };
+    const checkAward = (award: string, key: keyof TrialFormData) => {
+      if (!["none", "encouragement", "third", "second", "first"].includes(award)) {
+        nextErrors[key] = "Chọn giải thưởng";
+      }
+    };
+    const checkNumber = (number: number, key: keyof TrialFormData) => {
+      if (Number.isNaN(number) || number < 0) {
+        nextErrors[key] = "Nhập số";
+      }
+    };
     checkScore(data.scoreMath, "scoreMath");
     checkScore(data.scoreLiterature, "scoreLiterature");
     checkScore(data.electiveScore1, "electiveScore1");
     checkScore(data.electiveScore2, "electiveScore2");
-
-    if (data.ielts < 0 || data.ielts > 9) {
-      nextErrors.ielts = "IELTS từ 0 đến 9";
-    }
+    checkSat(data.sat, "sat");
+    checkAward(data.hsgProvince, "hsgProvince");
+    checkAward(data.hsgNational, "hsgNational");
+    checkAward(data.stemAward, "stemAward");
+    checkNumber(data.financialLevel, "financialLevel");
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -102,21 +121,10 @@ export function TrialForm() {
         <div className="space-y-7">
           <section>
             <div className="mb-3 flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Sparkles className="h-4 w-4" />
-              </span>
-              <h3 className="font-display text-lg font-bold">1. Tính cách SBTI</h3>
-            </div>
-            <SbtiPicker value={data.sbti} onChange={(value) => update("sbti", value)} />
-            {errors.sbti && <p className="mt-2 text-xs font-medium text-destructive">{errors.sbti}</p>}
-          </section>
-
-          <section>
-            <div className="mb-3 flex items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
                 <GraduationCap className="h-4 w-4" />
               </span>
-              <h3 className="font-display text-lg font-bold">2. Điểm thi khảo sát gần nhất</h3>
+              <h3 className="font-display text-lg font-bold">1. Điểm thi khảo sát gần nhất</h3>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Toán" error={errors.scoreMath}>
@@ -197,26 +205,24 @@ export function TrialForm() {
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/30 text-foreground">
                 <Trophy className="h-4 w-4" />
               </span>
-              <h3 className="font-display text-lg font-bold">3. Điểm thưởng</h3>
+              <h3 className="font-display text-lg font-bold">2. Giải thưởng</h3>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="IELTS (band)" hint="Để 0 nếu chưa có" error={errors.ielts}>
-                <NumberInput
-                  min={0}
-                  max={9}
-                  step={0.5}
-                  placeholder="0 - 9"
-                  value={data.ielts || ""}
-                  onChange={(event) => update("ielts", parseFloat(event.target.value) || 0)}
-                />
+              <Field label="HSGQG" error={errors.hsgNational}>
+                <SelectInput value={data.hsgNational} onChange={(event) => update("hsgNational", event.target.value as TrialFormData["hsgNational"])}>
+                  <option value="none">Không có</option>
+                  <option value="encouragement">Khuyến khích</option>
+                  <option value="third">Giải Ba</option>
+                  <option value="second">Giải Nhì</option>
+                  <option value="first">Giải Nhất</option>
+                </SelectInput>
               </Field>
-              <Field label="Giải văn hóa cao nhất">
+              <Field label="HSG tỉnh" error={errors.hsgProvince}>
                 <SelectInput
-                  value={data.culturalAward}
+                  value={data.hsgProvince}
                   onChange={(event) =>
-                    update("culturalAward", event.target.value as TrialFormData["culturalAward"])
-                  }
-                >
+                    update("hsgProvince", event.target.value as TrialFormData["hsgProvince"])
+                  }>
                   <option value="none">Không có</option>
                   <option value="encouragement">Khuyến khích</option>
                   <option value="third">Giải Ba</option>
@@ -229,13 +235,48 @@ export function TrialForm() {
 
           <section>
             <div className="mb-3 flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-tier-high/10 text-tier-high">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/30 text-foreground">
+                <Calculator className="h-4 w-4" />
+              </span>
+              <h3 className="font-display text-lg font-bold">3. Điểm thưởng(IELTS, KHKT)</h3>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="IELTS" hint="Để 0 nếu chưa có" error={errors.ielts}>
+                <NumberInput min={0} max={9} step={0.5} placeholder="0 - 9" value={data.ielts || ""} onChange={(event) => update("ielts", parseFloat(event.target.value) || 0)} />
+              </Field>
+              <Field label="KHKT" error={errors.stemAward}>
+                <SelectInput value={data.stemAward} onChange={(event) => update("stemAward", event.target.value as TrialFormData["stemAward"])}>
+                  <option value="none">Không có</option>
+                  <option value="encouragement">Khuyến khích</option>
+                  <option value="third">Giải Ba</option>
+                  <option value="second">Giải Nhì</option>
+                  <option value="first">Giải Nhất</option>
+                </SelectInput>
+              </Field>
+            </div>
+          </section>
+          <section>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/30 text-foreground">
                 <MapPin className="h-4 w-4" />
               </span>
-              <h3 className="font-display text-lg font-bold">4. Vùng dự thi</h3>
+              <h3 className="font-display text-lg font-bold">4. Thành tích khác</h3>
             </div>
-            <Field label="Tỉnh / Thành phố" error={errors.region}>
-              <SelectInput value={data.region} onChange={(event) => update("region", event.target.value)}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="SAT" error={errors.sat}>
+                <NumberInput min={0} max={1600} step={1} placeholder="0 - 1600" value={data.sat || ""} onChange={(event) => update("sat", parseFloat(event.target.value) || 0)} />
+              </Field>
+            </div>
+          </section>
+          <section>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/30 text-foreground">
+                <MapPin className="h-4 w-4" />
+              </span>
+              <h3 className="font-display text-lg font-bold">5. Vùng dự thi - Tài chính</h3>
+            </div>
+            <Field label="Vùng dự thi" error={errors.region}>
+              <SelectInput value={data.region} onChange={(event) => update("region", event.target.value as TrialFormData["region"])}>
                 <option value="">Chọn vùng</option>
                 {REGIONS.map((region) => (
                   <option key={region} value={region}>
@@ -243,6 +284,9 @@ export function TrialForm() {
                   </option>
                 ))}
               </SelectInput>
+            </Field>
+            <Field label="Mức tài chính" hint="Triệu VND/Kì học" error={errors.financialLevel}>
+              <NumberInput min={0} max={100} step={5} placeholder="0 - 100" value={data.financialLevel || ""} onChange={(event) => update("financialLevel", parseFloat(event.target.value) || 0)} />
             </Field>
           </section>
 

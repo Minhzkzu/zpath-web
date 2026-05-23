@@ -1,6 +1,6 @@
 import type { TrialFormData, TrialResult } from "@/types/zpath";
 
-const AWARD_BONUS: Record<TrialFormData["culturalAward"], number> = {
+const AWARD_BONUS: Record<TrialFormData["stemAward"], number> = {
   none: 0,
   encouragement: 0.5,
   third: 1,
@@ -20,7 +20,7 @@ export function computeResult(data: TrialFormData): TrialResult {
   const subjectAvg =
     (data.scoreMath + data.scoreLiterature + data.electiveScore1 + data.electiveScore2) / 4;
 
-  const bonus = ieltsBonus(data.ielts) + AWARD_BONUS[data.culturalAward];
+  const bonus = ieltsBonus(data.ielts) + AWARD_BONUS[data.stemAward];
   const totalScore = Math.min(10, subjectAvg + bonus * 0.5);
 
   let tier: TrialResult["tier"] = "LOW";

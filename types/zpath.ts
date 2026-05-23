@@ -1,31 +1,12 @@
 export type Tier = "LOW" | "MID" | "HIGH";
 
-export const SBTI_TYPES = [
-  "INTJ",
-  "INTP",
-  "ENTJ",
-  "ENTP",
-  "INFJ",
-  "INFP",
-  "ENFJ",
-  "ENFP",
-  "ISTJ",
-  "ISFJ",
-  "ESTJ",
-  "ESFJ",
-  "ISTP",
-  "ISFP",
-  "ESTP",
-  "ESFP",
-] as const;
+export type RiasecQuestionId = "q1" | "q2" | "q3" | "q4" | "q5" | "q6" | "q7" | "q8" | "q9" | "q10";
 
-export type SbtiType = (typeof SBTI_TYPES)[number];
 
 export const SUBJECTS = ["Lý", "Hóa", "Sinh", "Sử", "Địa", "Anh", "GDKT-PL", "Tin"] as const;
 export type Subject = (typeof SUBJECTS)[number];
 
 export interface TrialFormData {
-  sbti: SbtiType | "";
   scoreMath: number;
   scoreLiterature: number;
   electiveSubject1: Subject | "";
@@ -33,7 +14,11 @@ export interface TrialFormData {
   electiveSubject2: Subject | "";
   electiveScore2: number;
   ielts: number;
-  culturalAward: "none" | "encouragement" | "third" | "second" | "first";
+  sat: number;
+  hsgProvince: "none" | "encouragement" | "third" | "second" | "first";
+  hsgNational: "none" | "encouragement" | "third" | "second" | "first";
+  stemAward: "none" | "encouragement" | "third" | "second" | "first";
+  financialLevel: number; // number / per 1000k VND - one section
   region: string;
 }
 
@@ -56,3 +41,11 @@ export const REGIONS = [
   "Quảng Ninh",
   "Khác",
 ];
+
+export const RIASEC_DIMENSIONS = ["R", "I", "A", "S", "E", "C"] as const;
+export type RiasecDimension = (typeof RIASEC_DIMENSIONS)[number];
+
+export type RiasecAnswers = Partial<Record<RiasecQuestionId, number>>; // 1–5
+export type RiasecVector = Record<RiasecDimension, number>; // sau normalize
+
+

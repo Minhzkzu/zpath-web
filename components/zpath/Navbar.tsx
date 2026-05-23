@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, User, LayoutDashboard } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard } from "lucide-react";
 import { Logo } from "./Logo";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { supabase } from "@/app/lib/supabase";
@@ -13,6 +13,7 @@ const links = [
   { href: "/", label: "Trang chủ" },
   { href: "/unimap", label: "UniMap" },
   { href: "/majorly", label: "Majorly" },
+  { href: "/riasec", label: "Trắc nghiệm RIASEC" },
   { href: "/landing", label: "Tính tỉ lệ đỗ" },
 ];
 
