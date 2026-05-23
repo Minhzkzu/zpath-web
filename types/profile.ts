@@ -1,4 +1,4 @@
-import type { SbtiType, Subject } from "./zpath";
+import type { Subject, RiasecAnswers, RiasecVector } from "./zpath";
 
 export interface UserProfile {
   name: string;
@@ -6,7 +6,8 @@ export interface UserProfile {
   school: string;
   grade: string; // "12", "11", ...
   targetUniversity: string; // code or text
-  sbti: SbtiType | "";
+  riasecAnswers?: RiasecAnswers;
+  riasecVector?: RiasecVector;
   scoreMath: number;
   scoreLiterature: number;
   electiveSubject1: Subject | "";
@@ -14,7 +15,12 @@ export interface UserProfile {
   electiveSubject2: Subject | "";
   electiveScore2: number;
   ielts: number;
+  sat?: number;
+  hsgProvince?: "none" | "encouragement" | "third" | "second" | "first";
+  hsgNational?: "none" | "encouragement" | "third" | "second" | "first";
+  stemAward?: "none" | "encouragement" | "third" | "second" | "first";
   culturalAward: "none" | "encouragement" | "third" | "second" | "first";
+  financialLevel?: number;
   region: string;
   bio: string;
 }
@@ -25,7 +31,8 @@ export const EMPTY_PROFILE: UserProfile = {
   school: "",
   grade: "",
   targetUniversity: "",
-  sbti: "",
+  riasecAnswers: {},
+  riasecVector: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 },
   scoreMath: 0,
   scoreLiterature: 0,
   electiveSubject1: "",
@@ -33,7 +40,12 @@ export const EMPTY_PROFILE: UserProfile = {
   electiveSubject2: "",
   electiveScore2: 0,
   ielts: 0,
+  sat: 0,
+  hsgProvince: "none",
+  hsgNational: "none",
+  stemAward: "none",
   culturalAward: "none",
+  financialLevel: 0,
   region: "",
   bio: "",
 };

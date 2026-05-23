@@ -2,16 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Camera, Save, Trash2, CheckCircle2, ArrowRight, User, GraduationCap, Trophy, MapPin, Sparkles, Loader2 } from "lucide-react";
+import { Camera, Save, Trash2, CheckCircle2, ArrowRight, User, GraduationCap, Trophy, MapPin, Sparkles, Loader2, Brain, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, NumberInput, SelectInput } from "@/components/zpath/FormFields";
-import { SbtiPicker } from "@/components/zpath/SbtiPicker";
-import { REGIONS, SUBJECTS } from "@/types/zpath";
-import type { TrialFormData } from "@/types/zpath";
+import { REGIONS, SUBJECTS, RIASEC_DIMENSIONS } from "@/types/zpath";
+import type { RiasecDimension, RiasecVector, TrialFormData } from "@/types/zpath";
 import { EMPTY_PROFILE, type UserProfile, saveProfile as cacheLocal } from "@/types/profile";
 import { fetchProfile, upsertProfile } from "@/lib/profile-db";
+import { getHollandCode, RIASEC_DETAILS } from "@/lib/riasec_engine";
 import { UNIVERSITIES } from "@/data/universities";
 import { useUserProfile } from "@/hooks/useUserProfile";
+
+function hasRiasecResult(vector?: RiasecVector): boolean {
+  if (!vector) return false;
+  return RIASEC_DIMENSIONS.some((d) => vector[d] > 0);
+}
 
 export default function ProfilePage() {
   const { googleUser: user, isLoading: userLoading } = useUserProfile({ requireAuth: true });
@@ -81,6 +86,14 @@ export default function ProfilePage() {
     );
   }
 
+  const riasecVector = data.riasecVector;
+  const riasecDone = hasRiasecResult(riasecVector);
+  const hollandCode = riasecDone && riasecVector ? getHollandCode(riasecVector) : "";
+  const primaryDimension: RiasecDimension | null =
+    riasecDone && riasecVector
+      ? [...RIASEC_DIMENSIONS].sort((a, b) => riasecVector[b] - riasecVector[a])[0]
+      : null;
+
   return (
     <main className="container-page py-12 sm:py-16">
       <div className="mx-auto max-w-4xl">
@@ -147,11 +160,82 @@ export default function ProfilePage() {
           </section>
 
           <section>
-            <div className="mb-3 flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary"><Sparkles className="h-4 w-4" /></span>
-              <h3 className="font-display text-lg font-bold">Tính cách SBTI</h3>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Brain className="h-4 w-4" />
+                </span>
+                <h3 className="font-display text-lg font-bold">Trắc nghiệm RIASEC</h3>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/riasec">
+                  {riasecDone ? "Xem / làm lại" : "Làm trắc nghiệm"}
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
             </div>
-            <SbtiPicker value={data.sbti} onChange={(v) => update("sbti", v)} />
+
+            {riasecDone && riasecVector && primaryDimension ? (
+              <div
+                className="rounded-2xl border-2 p-5 space-y-4"
+                style={{ borderColor: RIASEC_DETAILS[primaryDimension].borderColor, backgroundColor: RIASEC_DETAILS[primaryDimension].bgColor }}
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Mã Holland</p>
+                    <p className="font-display text-2xl font-extrabold text-gradient-hero">{hollandCode}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Nhóm nổi trội:{" "}
+                      <strong style={{ color: RIASEC_DETAILS[primaryDimension].color }}>
+                        {RIASEC_DETAILS[primaryDimension].name}
+                      </strong>
+                    </p>
+                  </div>
+                  <Button asChild variant="hero" size="sm">
+                    <Link href="/riasec">Chi tiết kết quả</Link>
+                  </Button>
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {RIASEC_DIMENSIONS.map((d) => {
+                    const pct = Math.round(riasecVector[d] * 100);
+                    const detail = RIASEC_DETAILS[d];
+                    return (
+                      <div key={d} className="flex items-center gap-2">
+                        <span
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-black text-white"
+                          style={{ backgroundColor: detail.color }}
+                        >
+                          {d}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-0.5 flex justify-between text-[10px] font-semibold text-muted-foreground">
+                            <span className="truncate">{detail.name.split(" ")[0]}</span>
+                            <span>{pct}%</span>
+                          </div>
+                          <div className="h-1.5 overflow-hidden rounded-full bg-background/80">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{ width: `${pct}%`, backgroundColor: detail.color }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border-2 border-dashed border-border bg-muted/30 p-6 text-center">
+                <Sparkles className="mx-auto h-8 w-8 text-primary/60" />
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Bạn chưa làm trắc nghiệm tính cách RIASEC. Hoàn thành 10 câu hỏi (~2 phút) để nhận mã Holland và gợi ý hướng nghề.
+                </p>
+                <Button asChild variant="hero" className="mt-4">
+                  <Link href="/riasec">Bắt đầu trắc nghiệm RIASEC</Link>
+                </Button>
+              </div>
+            )}
           </section>
 
           <section>
